@@ -105,7 +105,7 @@ def _pipenv_exists():
     return True
 
 
-def _run_pipenv(args):
+def _run_pipenv(args, custom_tasks=None):
     if not _pipenv_exists():
         LOGGER.info("pipenv doesn't exist, let's set up env first..")
         set_env()
@@ -116,6 +116,14 @@ def _run_pipenv(args):
     # set env var properly
     os.environ["PATH"] = "{}:{}".format(PIPENV_BIN, os.environ.get("PATH"))
     os.environ["PIPENV_VENV_IN_PROJECT"] = "1"
+
+    # check custom tasks
+    custom_tasks = custom_tasks or {}
+
+    if args:
+        task = args[0]
+        func = custom_tasks[task]
+        return func()
 
     command = [PIPENV_ENTRY]
     command.extend(args)
@@ -291,9 +299,66 @@ def _execute_file(path):
         exec(code, dict(__file__=path), {})
 
 
+#######################
+# Load Customer Tasks #
+#######################
+TASKS_PY_FILENAME = "tasks.py"
+TASKS_INI_FILENAME = "tasks.ini"
+
+
+def _build_script(path):
+    # TODO: gracefully fail if the method doesn't accept the params.
+    # raise an exception or something.
+    with open(path) as fh:
+        script_body = fh.read()
+
+    script_locals = {}
+    compiled_source = compile(script_body, path, "exec")
+    exec(compiled_source, script_locals)
+    return script_locals
+
+
+def _get_public_functions(script):
+    public_func_names = []
+    for k, v in script.items():
+        if callable(v) and not k.startswith("_"):
+            public_func_names.append(v)
+    return sorted(public_func_names, key=lambda f: f.__name__)
+
+
+def _load_tasks(tasks_py_path=None, ini_path=None):
+    tasks = {}
+    tasks.update(_load_tasks_from_py(TASKS_PY_FILENAME))
+    tasks.update(_load_tasks_from_ini(TASKS_INI_FILENAME))
+    return tasks
+
+
+def _load_tasks_from_py(path=None):
+    tasks = {}
+    path = path or os.path.join(ROOT, TASKS_PY_FILENAME)
+
+    script = _build_script(path)
+    for f in _get_public_functions(script):
+        tasks[f.__name__] = f 
+
+    return tasks
+
+
+def _load_tasks_from_ini(path=None):
+    tasks = {}
+    path = path or TASKS_INI_FILENAME
+
+    return tasks
+
+
+########
+# Main #
+########
+
 def main(argv):
     options, args = parser.parse_args(argv)
-    sys.exit(_run_pipenv(args))
+    custom_tasks = _load_tasks()
+    sys.exit(_run_pipenv(args, custom_tasks))
 
 
 def _create_stdout_logger():

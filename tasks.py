@@ -15,3 +15,4 @@ def distribute():
 
 def build_doc():
 	""" Build Documentation """
+	print("Build Documentation..")
