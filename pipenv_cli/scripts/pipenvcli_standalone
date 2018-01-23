@@ -337,6 +337,9 @@ def _load_tasks_from_py(path=None):
     tasks = {}
     path = path or os.path.join(ROOT, TASKS_PY_FILENAME)
 
+    if not os.path.exists(path):
+        return {}
+
     script = _build_script(path)
     for f in _get_public_functions(script):
         tasks[f.__name__] = f 

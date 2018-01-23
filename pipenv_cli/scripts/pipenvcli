@@ -4,7 +4,7 @@ import os
 ROOT = os.path.dirname(__file__)
 PIPENVCLI_GITHUB_ACCOUNT = os.getenv('PIPENVCLI_GITHUB_ACCOUNT', 'yunstanford')
 PIPENVCLI_GITHUB_BRANCH = os.getenv('PIPENVCLI_GITHUB_BRANCH', 'master')
-PIPENVCLI_STANDALONE_URL = "https://raw.githubusercontent.com/{account}/pipenvcli/{branch}/pipenv_cli/scripts/pipenvcli_standalone".format(account=PIPENVCLI__GITHUB_ACCOUNT, branch=PIPENVCLI_GITHUB_BRANCH)
+PIPENVCLI_STANDALONE_URL = "https://raw.githubusercontent.com/{account}/pipenvcli/{branch}/pipenv_cli/scripts/pipenvcli_standalone".format(account=PIPENVCLI_GITHUB_ACCOUNT, branch=PIPENVCLI_GITHUB_BRANCH)
 CACHE_DIRECTORY = os.path.join(ROOT, ".sandbox")
 CACHED_PIPENVCLI_STANDALONE = os.path.join(CACHE_DIRECTORY, "pipenvcli_standalone")
 
