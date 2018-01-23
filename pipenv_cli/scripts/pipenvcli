@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+import os
+
+ROOT = os.path.dirname(__file__)
+PIPENVCLI_GITHUB_ACCOUNT = os.getenv('PIPENVCLI_GITHUB_ACCOUNT', 'yunstanford')
+PIPENVCLI_GITHUB_BRANCH = os.getenv('PIPENVCLI_GITHUB_BRANCH', 'master')
+PIPENVCLI_STANDALONE_URL = "https://raw.githubusercontent.com/{account}/pipenvcli/{branch}/pipenv_cli/scripts/pipenvcli_standalone".format(account=PIPENVCLI__GITHUB_ACCOUNT, branch=PIPENVCLI_GITHUB_BRANCH)
+CACHE_DIRECTORY = os.path.join(ROOT, ".sandbox")
+CACHED_PIPENVCLI_STANDALONE = os.path.join(CACHE_DIRECTORY, "pipenvcli_standalone")
+
+
+def get_cached_standalone():
+    if not os.path.isfile(CACHED_PIPENVCLI_STANDALONE):
+        return None
+    with open(CACHED_PIPENVCLI_STANDALONE) as fh:
+        return fh.read()
+
+
+def store_cached_standalone(body):
+    if not os.path.exists(CACHE_DIRECTORY):
+        os.makedirs(CACHE_DIRECTORY)
+    with open(CACHED_PIPENVCLI_STANDALONE, "wb+") as fh:
+        fh.write(body)
+
+cached_standalone = get_cached_standalone()
+
+
+if cached_standalone is not None:
+    exec(cached_standalone)
+else:
+    print("Downloading pipenvcli from " + PIPENVCLI_STANDALONE_URL)
+    try:
+        from urllib2 import urlopen as urlopen
+    except:
+        from urllib.request import urlopen as urlopen
+
+    print("loading pipenvcli bootstrapper...")
+    body = urlopen(PIPENVCLI_STANDALONE_URL).read()
+    print("caching standalone pipenvcli script...")
+    store_cached_standalone(body)
+    exec(body)
